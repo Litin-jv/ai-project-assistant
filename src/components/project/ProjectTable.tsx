@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Search, FileText, ExternalLink, Plus, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, FileText, ExternalLink, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EnableAIAgentModal } from "./EnableAIAgentModal";
-import { useToast } from "@/hooks/use-toast";
 
 export interface Project {
   id: string;
@@ -17,37 +16,20 @@ export interface Project {
 interface ProjectTableProps {
   projects: Project[];
   onAddProject: () => void;
-  onEnableAI: (projectId: string) => void;
-  onViewProject: (projectId: string) => void;
 }
 
-export function ProjectTable({ projects, onAddProject, onEnableAI, onViewProject }: ProjectTableProps) {
+export function ProjectTable({ projects, onAddProject }: ProjectTableProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"not-closed" | "closed">("not-closed");
   const [currentPage, setCurrentPage] = useState(1);
-  const [enableAIModalOpen, setEnableAIModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const filteredProjects = projects.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleEnableAIClick = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setEnableAIModalOpen(true);
-  };
-
-  const handleEnableAIConfirm = () => {
-    if (selectedProjectId) {
-      onEnableAI(selectedProjectId);
-      toast({
-        title: "AI Agent enabled successfully",
-        description: "AI can now generate and manage tasks for this project.",
-      });
-    }
-    setEnableAIModalOpen(false);
-    setSelectedProjectId(null);
+  const handleViewProject = (projectId: string) => {
+    navigate(`/project/${projectId}`);
   };
 
   return (
@@ -123,24 +105,13 @@ export function ProjectTable({ projects, onAddProject, onEnableAI, onViewProject
             >
               {project.status}
             </Badge>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => onViewProject(project.id)}
-                className="flex items-center gap-1 text-sm font-medium text-opz-blue hover:underline"
-              >
-                View
-                <ExternalLink className="h-3 w-3" />
-              </button>
-              {!project.ai_agent_enabled && (
-                <button
-                  onClick={() => handleEnableAIClick(project.id)}
-                  className="flex items-center gap-1 text-sm font-medium text-opz-blue hover:underline"
-                >
-                  <Sparkles className="h-3 w-3" />
-                  Add AI Agent
-                </button>
-              )}
-            </div>
+            <button 
+              onClick={() => handleViewProject(project.id)}
+              className="flex items-center gap-1 text-sm font-medium text-opz-blue hover:underline"
+            >
+              View
+              <ExternalLink className="h-3 w-3" />
+            </button>
           </div>
         ))}
       </div>
@@ -168,11 +139,6 @@ export function ProjectTable({ projects, onAddProject, onEnableAI, onViewProject
         <button className="px-2 py-1 text-sm text-muted-foreground hover:text-foreground">»</button>
       </div>
 
-      <EnableAIAgentModal
-        open={enableAIModalOpen}
-        onOpenChange={setEnableAIModalOpen}
-        onConfirm={handleEnableAIConfirm}
-      />
     </div>
   );
 }

@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { FolderKanban, Plus, Sparkles } from "lucide-react";
+import { FolderKanban } from "lucide-react";
 import { SummaryCards } from "./SummaryCards";
 import { ProjectTable, Project } from "./ProjectTable";
 import { TasksChart } from "./TasksChart";
 import { NewProjectModal } from "./NewProjectModal";
-import { AITaskGenerationModal, GeneratedTask } from "./AITaskGenerationModal";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const initialProjects: Project[] = [
@@ -18,8 +16,6 @@ const initialProjects: Project[] = [
 export function ProjectBoard() {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
-  const [aiTaskModalOpen, setAITaskModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const { toast } = useToast();
 
   const handleCreateProject = (data: {
@@ -47,31 +43,6 @@ export function ProjectBoard() {
     });
   };
 
-  const handleEnableAI = (projectId: string) => {
-    setProjects(projects.map((p) =>
-      p.id === projectId ? { ...p, ai_agent_enabled: true } : p
-    ));
-  };
-
-  const handleViewProject = (projectId: string) => {
-    const project = projects.find((p) => p.id === projectId);
-    if (project) {
-      setSelectedProject(project);
-    }
-  };
-
-  const handleGenerateTasks = () => {
-    if (selectedProject?.ai_agent_enabled) {
-      setAITaskModalOpen(true);
-    }
-  };
-
-  const handleAddTasks = (tasks: GeneratedTask[]) => {
-    toast({
-      title: `${tasks.length} tasks added successfully`,
-      description: "AI-generated tasks have been added to the project.",
-    });
-  };
 
   return (
     <div className="flex-1 overflow-auto p-6">
@@ -89,41 +60,11 @@ export function ProjectBoard() {
         <SummaryCards />
       </div>
 
-      {/* Task Actions (when project is selected) */}
-      {selectedProject && (
-        <div className="mb-4 flex items-center gap-3 rounded-lg border border-border bg-card p-4">
-          <p className="text-sm font-medium text-foreground">
-            Project: {selectedProject.name}
-          </p>
-          <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 border-border">
-              <Plus className="h-4 w-4" />
-              Add Task
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleGenerateTasks}
-              disabled={!selectedProject.ai_agent_enabled}
-              className={`gap-2 ${
-                selectedProject.ai_agent_enabled
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "cursor-not-allowed opacity-50 bg-muted text-muted-foreground"
-              }`}
-            >
-              <Sparkles className="h-4 w-4" />
-              Generate Tasks
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="flex gap-6">
         <ProjectTable
           projects={projects}
           onAddProject={() => setNewProjectModalOpen(true)}
-          onEnableAI={handleEnableAI}
-          onViewProject={handleViewProject}
         />
         <TasksChart />
       </div>
@@ -141,17 +82,6 @@ export function ProjectBoard() {
         onOpenChange={setNewProjectModalOpen}
         onSubmit={handleCreateProject}
       />
-
-      {selectedProject && (
-        <AITaskGenerationModal
-          open={aiTaskModalOpen}
-          onOpenChange={setAITaskModalOpen}
-          projectName={selectedProject.name}
-          projectDetails=""
-          projectOutcome=""
-          onAddTasks={handleAddTasks}
-        />
-      )}
     </div>
   );
 }
