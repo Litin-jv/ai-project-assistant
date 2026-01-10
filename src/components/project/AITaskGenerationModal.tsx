@@ -13,6 +13,7 @@ export interface GeneratedTask {
   description: string;
   dueDate?: string;
   priority: "low" | "medium" | "high";
+  assignee?: string;
   selected: boolean;
   generated_by_ai: boolean;
 }
@@ -23,6 +24,7 @@ interface AITaskGenerationModalProps {
   projectName: string;
   projectDetails: string;
   projectOutcome: string;
+  teamMembers: { id: string; name: string }[];
   onAddTasks: (tasks: GeneratedTask[]) => void;
 }
 
@@ -32,6 +34,7 @@ export function AITaskGenerationModal({
   projectName,
   projectDetails,
   projectOutcome,
+  teamMembers,
   onAddTasks,
 }: AITaskGenerationModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -49,6 +52,7 @@ export function AITaskGenerationModal({
         description: "Create detailed project scope document outlining deliverables, timeline, and resources",
         dueDate: "",
         priority: "high",
+        assignee: "",
         selected: false,
         generated_by_ai: true,
       },
@@ -58,6 +62,7 @@ export function AITaskGenerationModal({
         description: "Configure development environment, repositories, and CI/CD pipelines",
         dueDate: "",
         priority: "high",
+        assignee: "",
         selected: false,
         generated_by_ai: true,
       },
@@ -67,6 +72,7 @@ export function AITaskGenerationModal({
         description: "Develop comprehensive project plan with milestones and task breakdown",
         dueDate: "",
         priority: "medium",
+        assignee: "",
         selected: false,
         generated_by_ai: true,
       },
@@ -76,6 +82,7 @@ export function AITaskGenerationModal({
         description: "Schedule and conduct kickoff meeting with all stakeholders",
         dueDate: "",
         priority: "medium",
+        assignee: "",
         selected: false,
         generated_by_ai: true,
       },
@@ -85,6 +92,7 @@ export function AITaskGenerationModal({
         description: "Identify potential risks and create mitigation strategies",
         dueDate: "",
         priority: "low",
+        assignee: "",
         selected: false,
         generated_by_ai: true,
       },
@@ -177,10 +185,10 @@ export function AITaskGenerationModal({
                         onChange={(e) => updateTask(task.id, "description", e.target.value)}
                         className="mb-2 min-h-[60px] border-border text-sm resize-none"
                       />
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
                         <Input
-                          type="text"
-                          placeholder="Due date (optional)"
+                          type="date"
+                          placeholder="Due date"
                           value={task.dueDate || ""}
                           onChange={(e) => updateTask(task.id, "dueDate", e.target.value)}
                           className="w-40 border-border text-sm"
@@ -192,10 +200,25 @@ export function AITaskGenerationModal({
                           <SelectTrigger className="w-32 border-border text-sm">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-card border-border z-50">
                             <SelectItem value="low">Low</SelectItem>
                             <SelectItem value="medium">Medium</SelectItem>
                             <SelectItem value="high">High</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={task.assignee || ""}
+                          onValueChange={(v) => updateTask(task.id, "assignee", v)}
+                        >
+                          <SelectTrigger className="w-40 border-border text-sm">
+                            <SelectValue placeholder="Assignee" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-card border-border z-50">
+                            {teamMembers.map((member) => (
+                              <SelectItem key={member.id} value={member.id}>
+                                {member.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
