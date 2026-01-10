@@ -113,6 +113,7 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
     title: string;
     description: string;
     assignee: string;
+    startDate: string;
     dueDate: string;
     category: string;
     severity: number;
@@ -122,7 +123,7 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
       id: `TASK-${Date.now()}`,
       title: taskData.title,
       category: taskData.category,
-      assignee: taskData.assignee,
+      assignee: teamMembers.find(m => m.id === taskData.assignee)?.name || taskData.assignee,
       status: 0,
       dueDate: new Date(taskData.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       lastUpdated: "Just now",

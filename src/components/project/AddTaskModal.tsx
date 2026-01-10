@@ -139,26 +139,26 @@ export function AddTaskModal({
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Start Date</Label>
               <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="border-border pl-10"
+                  className="border-border pl-10 cursor-pointer"
                 />
-                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
               <span className="text-xs text-opz-coral">* required.</span>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Due Date</Label>
               <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
                 <Input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="border-border pl-10"
+                  className="border-border pl-10 cursor-pointer"
                 />
-                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
               <span className="text-xs text-opz-coral">* required.</span>
             </div>
