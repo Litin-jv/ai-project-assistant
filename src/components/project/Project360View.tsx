@@ -95,7 +95,7 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
     const newTasks: Task[] = generatedTasks.map((t, index) => ({
       id: `AI-${Date.now()}-${index}`,
       title: t.title,
-      category: "AI Generated",
+      category: t.category || "Development",
       assignee: t.assignee ? teamMembers.find(m => m.id === t.assignee)?.name || "Unassigned" : "Unassigned",
       status: 0,
       dueDate: t.dueDate || "TBD",

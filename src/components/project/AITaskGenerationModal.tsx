@@ -13,10 +13,20 @@ export interface GeneratedTask {
   description: string;
   dueDate?: string;
   priority: "low" | "medium" | "high";
+  category: string;
   assignee?: string;
   selected: boolean;
   generated_by_ai: boolean;
 }
+
+const categories = [
+  "S-Micro-Ecosystem",
+  "Development",
+  "Design",
+  "Planning",
+  "Review",
+  "Testing",
+];
 
 interface AITaskGenerationModalProps {
   open: boolean;
@@ -52,6 +62,7 @@ export function AITaskGenerationModal({
         description: "Create detailed project scope document outlining deliverables, timeline, and resources",
         dueDate: "",
         priority: "high",
+        category: "Planning",
         assignee: "",
         selected: false,
         generated_by_ai: true,
@@ -62,6 +73,7 @@ export function AITaskGenerationModal({
         description: "Configure development environment, repositories, and CI/CD pipelines",
         dueDate: "",
         priority: "high",
+        category: "Development",
         assignee: "",
         selected: false,
         generated_by_ai: true,
@@ -72,6 +84,7 @@ export function AITaskGenerationModal({
         description: "Develop comprehensive project plan with milestones and task breakdown",
         dueDate: "",
         priority: "medium",
+        category: "Planning",
         assignee: "",
         selected: false,
         generated_by_ai: true,
@@ -82,6 +95,7 @@ export function AITaskGenerationModal({
         description: "Schedule and conduct kickoff meeting with all stakeholders",
         dueDate: "",
         priority: "medium",
+        category: "Review",
         assignee: "",
         selected: false,
         generated_by_ai: true,
@@ -92,6 +106,7 @@ export function AITaskGenerationModal({
         description: "Identify potential risks and create mitigation strategies",
         dueDate: "",
         priority: "low",
+        category: "Planning",
         assignee: "",
         selected: false,
         generated_by_ai: true,
@@ -204,6 +219,21 @@ export function AITaskGenerationModal({
                             <SelectItem value="low">Low</SelectItem>
                             <SelectItem value="medium">Medium</SelectItem>
                             <SelectItem value="high">High</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={task.category}
+                          onValueChange={(v) => updateTask(task.id, "category", v)}
+                        >
+                          <SelectTrigger className="w-40 border-border text-sm">
+                            <SelectValue placeholder="Category" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-card border-border z-50">
+                            {categories.map((cat) => (
+                              <SelectItem key={cat} value={cat}>
+                                {cat}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <Select
