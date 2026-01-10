@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnableAIAgentModal } from "./EnableAIAgentModal";
 import { AITaskGenerationModal, GeneratedTask } from "./AITaskGenerationModal";
+import { AddTaskModal } from "./AddTaskModal";
 import { useToast } from "@/hooks/use-toast";
 
 interface Project360Props {
@@ -63,6 +64,14 @@ const initialTasks: Task[] = [
   },
 ];
 
+// Mock team members
+const teamMembers = [
+  { id: "1", name: "John Doe" },
+  { id: "2", name: "Jane Smith" },
+  { id: "3", name: "Mike Johnson" },
+  { id: "4", name: "Sarah Williams" },
+];
+
 export function Project360View({ project, onEnableAI }: Project360Props) {
   const [activeTab, setActiveTab] = useState("tasks");
   const [filter, setFilter] = useState<"not-closed" | "closed">("not-closed");
@@ -70,6 +79,7 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [enableAIModalOpen, setEnableAIModalOpen] = useState(false);
   const [aiTaskModalOpen, setAITaskModalOpen] = useState(false);
+  const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
   const { toast } = useToast();
 
   const handleEnableAIConfirm = () => {
@@ -86,7 +96,7 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
       id: `AI-${Date.now()}-${index}`,
       title: t.title,
       category: "AI Generated",
-      assignee: "Unassigned",
+      assignee: t.assignee ? teamMembers.find(m => m.id === t.assignee)?.name || "Unassigned" : "Unassigned",
       status: 0,
       dueDate: t.dueDate || "TBD",
       lastUpdated: "Just now",
@@ -96,6 +106,32 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
     toast({
       title: `${generatedTasks.length} AI-generated tasks added to this project`,
       description: "Tasks have been added to your task list.",
+    });
+  };
+
+  const handleAddManualTask = (taskData: {
+    title: string;
+    description: string;
+    assignee: string;
+    dueDate: string;
+    category: string;
+    severity: number;
+    publishable: boolean;
+  }) => {
+    const newTask: Task = {
+      id: `TASK-${Date.now()}`,
+      title: taskData.title,
+      category: taskData.category,
+      assignee: taskData.assignee,
+      status: 0,
+      dueDate: new Date(taskData.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      lastUpdated: "Just now",
+      generated_by_ai: false,
+    };
+    setTasks([...tasks, newTask]);
+    toast({
+      title: "Task added successfully",
+      description: `"${taskData.title}" has been added to your task list.`,
     });
   };
 
@@ -280,7 +316,10 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
             </label>
 
             {/* Add Task Button */}
-            <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button 
+              onClick={() => setAddTaskModalOpen(true)}
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               <FileText className="h-4 w-4" />
               Add Task
             </Button>
@@ -426,7 +465,16 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
         projectName={project.name}
         projectDetails={project.details}
         projectOutcome={project.outcome}
+        teamMembers={teamMembers}
         onAddTasks={handleAddTasks}
+      />
+
+      <AddTaskModal
+        open={addTaskModalOpen}
+        onOpenChange={setAddTaskModalOpen}
+        projectName={project.name}
+        teamMembers={teamMembers}
+        onAddTask={handleAddManualTask}
       />
     </div>
   );
