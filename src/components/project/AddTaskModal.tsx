@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Calendar, Clock, Users } from "lucide-react";
+import { FileText, Calendar, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,7 @@ interface AddTaskModalProps {
     title: string;
     description: string;
     assignee: string;
+    startDate: string;
     dueDate: string;
     category: string;
     severity: number;
@@ -56,19 +57,20 @@ export function AddTaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assignee, setAssignee] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [hour, setHour] = useState("");
   const [category, setCategory] = useState("Development");
   const [severity, setSeverity] = useState(3);
   const [publishable, setPublishable] = useState(true);
 
   const handleSubmit = () => {
-    if (!title || !dueDate) return;
+    if (!title || !startDate || !dueDate) return;
 
     onAddTask({
       title,
       description,
       assignee: assignee || "Unassigned",
+      startDate,
       dueDate,
       category,
       severity,
@@ -79,8 +81,8 @@ export function AddTaskModal({
     setTitle("");
     setDescription("");
     setAssignee("");
+    setStartDate("");
     setDueDate("");
-    setHour("");
     setCategory("Development");
     setSeverity(3);
     setPublishable(true);
@@ -115,7 +117,7 @@ export function AddTaskModal({
             </div>
           </div>
 
-          {/* Assignee, Due, Hour Row */}
+          {/* Assignee, Start Date, Due Date Row */}
           <div className="grid grid-cols-3 gap-3">
             <div>
               <Select value={assignee} onValueChange={setAssignee}>
@@ -135,6 +137,20 @@ export function AddTaskModal({
               </Select>
             </div>
             <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Start Date</Label>
+              <div className="relative">
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="border-border pl-10"
+                />
+                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              </div>
+              <span className="text-xs text-opz-coral">* required.</span>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Due Date</Label>
               <div className="relative">
                 <Input
                   type="date"
@@ -143,19 +159,6 @@ export function AddTaskModal({
                   className="border-border pl-10"
                 />
                 <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              </div>
-              <span className="text-xs text-opz-coral">* required.</span>
-            </div>
-            <div>
-              <div className="relative">
-                <Input
-                  type="time"
-                  value={hour}
-                  onChange={(e) => setHour(e.target.value)}
-                  placeholder="Hour"
-                  className="border-border pl-10"
-                />
-                <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
               <span className="text-xs text-opz-coral">* required.</span>
             </div>
@@ -233,7 +236,7 @@ export function AddTaskModal({
         <DialogFooter className="border-t border-border px-6 py-4">
           <Button
             onClick={handleSubmit}
-            disabled={!title || !dueDate}
+            disabled={!title || !startDate || !dueDate}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Create Task
