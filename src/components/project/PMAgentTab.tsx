@@ -46,7 +46,6 @@ interface AgentCapability {
   name: string;
   description: string;
   enabled: boolean;
-  subFeatures?: { id: string; name: string; enabled: boolean }[];
 }
 
 interface AgentLog {
@@ -108,20 +107,12 @@ export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgent
       name: "Task Generation & Allocation",
       description: "Automatically create and assign tasks based on project context",
       enabled: true,
-      subFeatures: [
-        { id: "auto-create", name: "Auto-create tasks based on project context", enabled: true },
-        { id: "intelligent-assign", name: "Assign tasks to team members intelligently", enabled: true },
-      ],
     },
     {
       id: "weekly-reporting",
       name: "Weekly Project Reporting",
       description: "Generate and distribute automated project summaries",
       enabled: true,
-      subFeatures: [
-        { id: "generate-summaries", name: "Generate weekly summaries", enabled: true },
-        { id: "email-reports", name: "Email reports to stakeholders automatically", enabled: false },
-      ],
     },
   ]);
   const [logs] = useState<AgentLog[]>(mockLogs);
@@ -152,21 +143,6 @@ export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgent
     );
   };
 
-  const toggleSubFeature = (capId: string, subId: string) => {
-    if (!aiAgentEnabled) return;
-    setCapabilities(prev =>
-      prev.map(cap =>
-        cap.id === capId
-          ? {
-              ...cap,
-              subFeatures: cap.subFeatures?.map(sub =>
-                sub.id === subId ? { ...sub, enabled: !sub.enabled } : sub
-              ),
-            }
-          : cap
-      )
-    );
-  };
 
   const toggleLogExpanded = (logId: string) => {
     setExpandedLogs(prev => {
@@ -268,23 +244,6 @@ export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgent
                 {cap.id === "task-generation" && <FileText className="h-4 w-4 text-muted-foreground" />}
                 {cap.id === "weekly-reporting" && <Mail className="h-4 w-4 text-muted-foreground" />}
               </div>
-              {cap.subFeatures && cap.enabled && (
-                <div className="mt-3 ml-7 space-y-2 border-l-2 border-border pl-4">
-                  {cap.subFeatures.map(sub => (
-                    <div key={sub.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={sub.id}
-                        checked={sub.enabled}
-                        onCheckedChange={() => toggleSubFeature(cap.id, sub.id)}
-                        disabled={!aiAgentEnabled}
-                      />
-                      <label htmlFor={sub.id} className="text-sm text-muted-foreground cursor-pointer">
-                        {sub.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </CardContent>
