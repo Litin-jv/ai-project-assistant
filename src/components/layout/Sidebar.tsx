@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { 
   Home, 
   FolderKanban, 
@@ -10,6 +11,7 @@ import {
   CheckCircle2, 
   Building2, 
   FileBarChart,
+  Settings,
   ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +19,7 @@ import { cn } from "@/lib/utils";
 interface NavItem {
   icon: React.ElementType;
   label: string;
+  href?: string;
   active?: boolean;
   badge?: number;
   subItems?: { label: string; active?: boolean }[];
@@ -43,6 +46,7 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
 
   return (
     <aside className="relative flex h-full w-[200px] flex-col border-r border-border bg-card">
@@ -91,6 +95,22 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Settings Link - Bottom of Sidebar */}
+      <div className="border-t border-border px-3 py-3">
+        <Link
+          to="/settings"
+          className={cn(
+            "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+            location.pathname === "/settings"
+              ? "bg-opz-yellow-light text-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent"
+          )}
+        >
+          <Settings className={cn("h-5 w-5", location.pathname === "/settings" ? "text-opz-yellow" : "text-muted-foreground")} />
+          <span>Settings</span>
+        </Link>
+      </div>
     </aside>
   );
 }

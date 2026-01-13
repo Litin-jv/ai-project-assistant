@@ -13,7 +13,8 @@ import {
   Search,
   Filter,
   ExternalLink,
-  Image
+  Image,
+  Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnableAIAgentModal } from "./EnableAIAgentModal";
 import { AITaskGenerationModal, GeneratedTask } from "./AITaskGenerationModal";
 import { AddTaskModal } from "./AddTaskModal";
+import { PMAgentTab } from "./PMAgentTab";
 import { useToast } from "@/hooks/use-toast";
 
 interface Project360Props {
@@ -289,10 +291,17 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
             <FileText className="mr-2 h-4 w-4" />
             Resources
           </TabsTrigger>
+          <TabsTrigger 
+            value="pm-agent" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-opz-yellow data-[state=active]:bg-transparent px-4 py-2"
+          >
+            <Bot className="mr-2 h-4 w-4" />
+            PM Agent
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="mt-0">
-          {/* Filter Row with AI Buttons */}
+          {/* Filter Row */}
           <div className="mb-4 flex items-center gap-4">
             <label className="flex items-center gap-2 text-sm">
               <input 
@@ -325,17 +334,8 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
               Add Task
             </Button>
 
-            {/* AI Buttons - Only visible in Tasks tab */}
-            {!project.ai_agent_enabled ? (
-              <Button 
-                variant="outline"
-                onClick={() => setEnableAIModalOpen(true)}
-                className="gap-2 border-opz-blue text-opz-blue hover:bg-opz-blue/10"
-              >
-                <Sparkles className="h-4 w-4" />
-                Add AI Agent
-              </Button>
-            ) : (
+            {/* Generate Tasks Button - Only visible if AI Agent is enabled */}
+            {project.ai_agent_enabled && (
               <Button 
                 onClick={() => setAITaskModalOpen(true)}
                 className="gap-2 bg-opz-yellow text-foreground hover:bg-opz-yellow/90"
@@ -443,6 +443,18 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
             <h3 className="text-lg font-medium text-foreground mb-4">Resources</h3>
             <p className="text-muted-foreground">No resources added yet.</p>
           </div>
+        </TabsContent>
+
+        <TabsContent value="pm-agent">
+          <PMAgentTab 
+            projectId={project.id}
+            aiAgentEnabled={project.ai_agent_enabled}
+            onToggleAgent={(enabled) => {
+              if (enabled) {
+                handleEnableAIConfirm();
+              }
+            }}
+          />
         </TabsContent>
       </Tabs>
 
