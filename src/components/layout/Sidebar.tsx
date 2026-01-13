@@ -22,7 +22,7 @@ interface NavItem {
   href?: string;
   active?: boolean;
   badge?: number;
-  subItems?: { label: string; active?: boolean }[];
+  subItems?: { label: string; href?: string; active?: boolean }[];
 }
 
 const navItems: NavItem[] = [
@@ -30,9 +30,10 @@ const navItems: NavItem[] = [
   { 
     icon: FolderKanban, 
     label: "My Projects",
+    href: "/project/1",
     subItems: [
-      { label: "Scrum", active: true },
-      { label: "Kanban" }
+      { label: "Scrum", href: "/project/1" },
+      { label: "Kanban", href: "/project/1" }
     ]
   },
   { icon: Users, label: "My Teams" },
@@ -77,18 +78,19 @@ export function Sidebar() {
             {item.subItems && (
               <div className="ml-8 mt-1 space-y-1">
                 {item.subItems.map((sub, subIndex) => (
-                  <button
+                  <Link
                     key={subIndex}
+                    to={sub.href || "/"}
                     className={cn(
                       "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
-                      sub.active
+                      (sub.href && location.pathname.startsWith(sub.href))
                         ? "bg-opz-yellow-light text-foreground font-medium"
                         : "text-muted-foreground hover:bg-sidebar-accent"
                     )}
                   >
                     <LayoutGrid className="h-4 w-4" />
                     <span>{sub.label}</span>
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}
