@@ -14,7 +14,8 @@ import {
   Clock,
   Target,
   Link2,
-  Brain
+  Brain,
+  Save
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 interface PMAgentTabProps {
   projectId: string;
@@ -101,7 +103,22 @@ const mockLogs: AgentLog[] = [
 
 export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgentTabProps) {
   const [showDisableDialog, setShowDisableDialog] = useState(false);
+  const [activeSubSection, setActiveSubSection] = useState<"capabilities" | "logs">("capabilities");
   const [capabilities, setCapabilities] = useState<AgentCapability[]>([
+    {
+      id: "task-generation",
+      name: "Task Generation & Allocation",
+      description: "Automatically create and assign tasks based on project context",
+      enabled: true,
+    },
+    {
+      id: "weekly-reporting",
+      name: "Weekly Project Reporting",
+      description: "Generate and distribute automated project summaries",
+      enabled: true,
+    },
+  ]);
+  const [savedCapabilities, setSavedCapabilities] = useState<AgentCapability[]>([
     {
       id: "task-generation",
       name: "Task Generation & Allocation",
@@ -120,6 +137,9 @@ export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgent
   const [logFilter, setLogFilter] = useState<"all" | "autonomous" | "human-approved">("all");
   const [taskIdFilter, setTaskIdFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+
+  const hasCapabilityChanges = JSON.stringify(capabilities) !== JSON.stringify(savedCapabilities);
+  const { toast } = useToast();
 
   const handleToggleChange = (checked: boolean) => {
     if (!checked && aiAgentEnabled) {
@@ -143,6 +163,13 @@ export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgent
     );
   };
 
+  const saveCapabilities = () => {
+    setSavedCapabilities([...capabilities]);
+    toast({
+      title: "Capabilities saved",
+      description: "Agent capabilities have been updated successfully.",
+    });
+  };
 
   const toggleLogExpanded = (logId: string) => {
     setExpandedLogs(prev => {
@@ -199,205 +226,248 @@ export function PMAgentTab({ projectId, aiAgentEnabled, onToggleAgent }: PMAgent
         </div>
       </div>
 
+      {/* Sub-Section Tabs */}
+      <div className="flex items-center gap-2 border-b border-border">
+        <button
+          onClick={() => setActiveSubSection("capabilities")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeSubSection === "capabilities"
+              ? "border-opz-yellow text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Sparkles className="h-4 w-4" />
+          Agent Capabilities
+        </button>
+        <button
+          onClick={() => setActiveSubSection("logs")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            activeSubSection === "logs"
+              ? "border-opz-yellow text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FileText className="h-4 w-4" />
+          Agent Logs & Audit Trail
+        </button>
+      </div>
+
       {/* Agent Capabilities Section */}
-      <Card className="border-border">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-opz-yellow" />
-            <CardTitle className="text-base">Agent Capabilities</CardTitle>
-          </div>
-          <CardDescription>
-            Enable or disable specific AI agent functions for this project
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {capabilities.map(cap => (
-            <div
-              key={cap.id}
-              className={`rounded-lg border border-border p-4 transition-opacity ${!aiAgentEnabled ? "opacity-50" : ""}`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id={cap.id}
-                    checked={cap.enabled}
-                    onCheckedChange={() => toggleCapability(cap.id)}
-                    disabled={!aiAgentEnabled}
-                  />
-                  <div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <label
-                          htmlFor={cap.id}
-                          className="text-sm font-medium text-foreground cursor-pointer hover:text-opz-blue"
-                        >
-                          {cap.name}
-                        </label>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{cap.description}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <p className="text-xs text-muted-foreground mt-0.5">{cap.description}</p>
-                  </div>
-                </div>
-                {cap.id === "task-generation" && <FileText className="h-4 w-4 text-muted-foreground" />}
-                {cap.id === "weekly-reporting" && <Mail className="h-4 w-4 text-muted-foreground" />}
+      {activeSubSection === "capabilities" && (
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-opz-yellow" />
+                <CardTitle className="text-base">Agent Capabilities</CardTitle>
               </div>
+              {hasCapabilityChanges && (
+                <Button
+                  size="sm"
+                  onClick={saveCapabilities}
+                  disabled={!aiAgentEnabled}
+                  className="gap-1 bg-opz-yellow text-foreground hover:bg-opz-yellow/90"
+                >
+                  <Save className="h-3 w-3" />
+                  Save Capabilities
+                </Button>
+              )}
             </div>
-          ))}
-        </CardContent>
-      </Card>
+            <CardDescription>
+              Enable or disable specific AI agent functions for this project
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {capabilities.map(cap => (
+              <div
+                key={cap.id}
+                className={`rounded-lg border border-border p-4 transition-opacity ${!aiAgentEnabled ? "opacity-50" : ""}`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id={cap.id}
+                      checked={cap.enabled}
+                      onCheckedChange={() => toggleCapability(cap.id)}
+                      disabled={!aiAgentEnabled}
+                    />
+                    <div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <label
+                            htmlFor={cap.id}
+                            className="text-sm font-medium text-foreground cursor-pointer hover:text-opz-blue"
+                          >
+                            {cap.name}
+                          </label>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{cap.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <p className="text-xs text-muted-foreground mt-0.5">{cap.description}</p>
+                    </div>
+                  </div>
+                  {cap.id === "task-generation" && <FileText className="h-4 w-4 text-muted-foreground" />}
+                  {cap.id === "weekly-reporting" && <Mail className="h-4 w-4 text-muted-foreground" />}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Agent Logs Section */}
-      <Card className="border-border">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-opz-blue" />
-              <CardTitle className="text-base">Agent Logs & Audit Trail</CardTitle>
+      {activeSubSection === "logs" && (
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-opz-blue" />
+                <CardTitle className="text-base">Agent Logs & Audit Trail</CardTitle>
+              </div>
             </div>
-          </div>
-          <CardDescription>
-            Chronological log of all PM Agent actions with full decision transparency
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3 mb-4 pb-4 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={logFilter} onValueChange={(v) => setLogFilter(v as typeof logFilter)}>
-                <SelectTrigger className="w-40 h-8 text-sm">
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Actions</SelectItem>
-                  <SelectItem value="autonomous">Autonomous</SelectItem>
-                  <SelectItem value="human-approved">Human Approved</SelectItem>
-                </SelectContent>
-              </Select>
+            <CardDescription>
+              Chronological log of all PM Agent actions with full decision transparency
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-3 mb-4 pb-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={logFilter} onValueChange={(v) => setLogFilter(v as typeof logFilter)}>
+                  <SelectTrigger className="w-40 h-8 text-sm">
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Actions</SelectItem>
+                    <SelectItem value="autonomous">Autonomous</SelectItem>
+                    <SelectItem value="human-approved">Human Approved</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input
+                placeholder="Filter by Task ID..."
+                value={taskIdFilter}
+                onChange={e => setTaskIdFilter(e.target.value)}
+                className="w-40 h-8 text-sm"
+              />
+              <Input
+                type="date"
+                value={dateFilter}
+                onChange={e => setDateFilter(e.target.value)}
+                className="w-40 h-8 text-sm"
+              />
             </div>
-            <Input
-              placeholder="Filter by Task ID..."
-              value={taskIdFilter}
-              onChange={e => setTaskIdFilter(e.target.value)}
-              className="w-40 h-8 text-sm"
-            />
-            <Input
-              type="date"
-              value={dateFilter}
-              onChange={e => setDateFilter(e.target.value)}
-              className="w-40 h-8 text-sm"
-            />
-          </div>
 
-          {/* Log Entries */}
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-3">
-              {filteredLogs.map(log => (
-                <Collapsible
-                  key={log.id}
-                  open={expandedLogs.has(log.id)}
-                  onOpenChange={() => toggleLogExpanded(log.id)}
-                >
-                  <div className="rounded-lg border border-border bg-card overflow-hidden">
-                    <CollapsibleTrigger asChild>
-                      <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-2 w-2 rounded-full ${log.humanInLoop === "Autonomous" ? "bg-opz-blue" : "bg-opz-green"}`} />
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{log.action}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-muted-foreground">{formatTimestamp(log.timestamp)}</span>
-                              {log.taskId && (
-                                <Badge variant="outline" className="text-xs">
-                                  {log.taskId}
+            {/* Log Entries */}
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-3">
+                {filteredLogs.map(log => (
+                  <Collapsible
+                    key={log.id}
+                    open={expandedLogs.has(log.id)}
+                    onOpenChange={() => toggleLogExpanded(log.id)}
+                  >
+                    <div className="rounded-lg border border-border bg-card overflow-hidden">
+                      <CollapsibleTrigger asChild>
+                        <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-2 w-2 rounded-full ${log.humanInLoop === "Autonomous" ? "bg-opz-blue" : "bg-opz-green"}`} />
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{log.action}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-muted-foreground">{formatTimestamp(log.timestamp)}</span>
+                                {log.taskId && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {log.taskId}
+                                  </Badge>
+                                )}
+                                <Badge
+                                  variant={log.humanInLoop === "Autonomous" ? "secondary" : "default"}
+                                  className={`text-xs ${log.humanInLoop === "Human Approved" ? "bg-opz-green text-primary-foreground" : ""}`}
+                                >
+                                  {log.humanInLoop}
                                 </Badge>
-                              )}
-                              <Badge
-                                variant={log.humanInLoop === "Autonomous" ? "secondary" : "default"}
-                                className={`text-xs ${log.humanInLoop === "Human Approved" ? "bg-opz-green text-primary-foreground" : ""}`}
-                              >
-                                {log.humanInLoop}
-                              </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          {expandedLogs.has(log.id) ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
+                          {/* Decision Context */}
+                          <div className="flex items-start gap-2">
+                            <Target className="h-4 w-4 text-opz-coral mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Decision Context</p>
+                              <p className="text-sm text-foreground mt-0.5">{log.decisionContext}</p>
+                            </div>
+                          </div>
+
+                          {/* Goal Alignment */}
+                          <div className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-opz-green mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Goal Alignment</p>
+                              <p className="text-sm text-foreground mt-0.5">{log.goalAlignment}</p>
+                            </div>
+                          </div>
+
+                          {/* AI Reasoning (Thought Trace) */}
+                          <div className="flex items-start gap-2">
+                            <Brain className="h-4 w-4 text-opz-yellow mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">AI Reasoning (Trace)</p>
+                              <p className="text-sm text-foreground mt-0.5 font-mono text-xs bg-muted/50 p-2 rounded">{log.thoughtTrace}</p>
+                            </div>
+                          </div>
+
+                          {/* Dependency Impact */}
+                          <div className="flex items-start gap-2">
+                            <Link2 className="h-4 w-4 text-opz-blue mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Dependency Impact</p>
+                              <p className="text-sm text-foreground mt-0.5">{log.dependencyImpact}</p>
+                            </div>
+                          </div>
+
+                          {/* Human-in-the-Loop */}
+                          <div className="flex items-start gap-2">
+                            <User className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Human-in-the-Loop</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Badge
+                                  variant={log.humanInLoop === "Autonomous" ? "secondary" : "default"}
+                                  className={log.humanInLoop === "Human Approved" ? "bg-opz-green text-primary-foreground" : ""}
+                                >
+                                  {log.humanInLoop}
+                                </Badge>
+                                {log.approverName && (
+                                  <span className="text-sm text-muted-foreground">
+                                    by {log.approverName} at {formatTimestamp(log.approverTimestamp || "")}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                        {expandedLogs.has(log.id) ? (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
-                        {/* Decision Context */}
-                        <div className="flex items-start gap-2">
-                          <Target className="h-4 w-4 text-opz-coral mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Decision Context</p>
-                            <p className="text-sm text-foreground mt-0.5">{log.decisionContext}</p>
-                          </div>
-                        </div>
-
-                        {/* Goal Alignment */}
-                        <div className="flex items-start gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-opz-green mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Goal Alignment</p>
-                            <p className="text-sm text-foreground mt-0.5">{log.goalAlignment}</p>
-                          </div>
-                        </div>
-
-                        {/* AI Reasoning (Thought Trace) */}
-                        <div className="flex items-start gap-2">
-                          <Brain className="h-4 w-4 text-opz-yellow mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">AI Reasoning (Trace)</p>
-                            <p className="text-sm text-foreground mt-0.5 font-mono text-xs bg-muted/50 p-2 rounded">{log.thoughtTrace}</p>
-                          </div>
-                        </div>
-
-                        {/* Dependency Impact */}
-                        <div className="flex items-start gap-2">
-                          <Link2 className="h-4 w-4 text-opz-blue mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Dependency Impact</p>
-                            <p className="text-sm text-foreground mt-0.5">{log.dependencyImpact}</p>
-                          </div>
-                        </div>
-
-                        {/* Human-in-the-Loop */}
-                        <div className="flex items-start gap-2">
-                          <User className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Human-in-the-Loop</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <Badge
-                                variant={log.humanInLoop === "Autonomous" ? "secondary" : "default"}
-                                className={log.humanInLoop === "Human Approved" ? "bg-opz-green text-primary-foreground" : ""}
-                              >
-                                {log.humanInLoop}
-                              </Badge>
-                              {log.approverName && (
-                                <span className="text-sm text-muted-foreground">
-                                  by {log.approverName} at {formatTimestamp(log.approverTimestamp || "")}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Disable Confirmation Dialog */}
       <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
