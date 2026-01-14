@@ -8,7 +8,9 @@ import {
   Zap,
   ChevronRight,
   Save,
-  RotateCcw
+  RotateCcw,
+  FileText,
+  Bell
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +30,20 @@ interface ConfigSection {
   description: string;
 }
 
-const configSections: ConfigSection[] = [
+interface SettingsCategory {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+}
+
+const settingsCategories: SettingsCategory[] = [
+  { id: "task", name: "Task", icon: FileText },
+  { id: "notification", name: "Notification", icon: Bell },
+  { id: "security", name: "Security", icon: Shield },
+  { id: "agent-config", name: "Agent Configuration", icon: Bot },
+];
+
+const agentConfigSections: ConfigSection[] = [
   { id: "model", name: "Model Selection", icon: Bot, description: "Choose AI model and version" },
   { id: "prompts", name: "Prompt Templates", icon: Sliders, description: "Customize agent prompts" },
   { id: "parameters", name: "Parameters", icon: Zap, description: "Temperature, tokens, limits" },
@@ -36,6 +51,7 @@ const configSections: ConfigSection[] = [
 ];
 
 const Settings = () => {
+  const [activeCategory, setActiveCategory] = useState("agent-config");
   const [activeSection, setActiveSection] = useState("model");
   const { toast } = useToast();
   
@@ -299,74 +315,134 @@ const Settings = () => {
           <div className="mb-4 flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Settings</span>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            <span className="text-opz-yellow">Agent Configuration</span>
+            <span className="text-opz-yellow">{settingsCategories.find(c => c.id === activeCategory)?.name}</span>
           </div>
 
           {/* Page Header */}
           <div className="mb-6">
-            <h1 className="text-xl font-semibold text-foreground">Agent Configuration</h1>
+            <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              Settings
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Configure AI model settings, prompts, and safety parameters for the PM Agent
+              Manage your application settings and preferences
             </p>
           </div>
 
-          {/* Two-Column Layout */}
-          <div className="grid grid-cols-[280px,1fr] gap-6">
-            {/* Left Column - Categories */}
-            <Card className="border-border h-fit">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Configuration Categories</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <nav className="space-y-1 p-2">
-                  {configSections.map((section) => (
-                    <button
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
-                        activeSection === section.id
-                          ? "bg-opz-yellow/20 text-foreground font-medium"
-                          : "text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      <section.icon className={`h-4 w-4 ${activeSection === section.id ? "text-opz-yellow" : ""}`} />
-                      <div>
-                        <p className="font-medium">{section.name}</p>
-                        <p className="text-xs text-muted-foreground">{section.description}</p>
-                      </div>
-                    </button>
-                  ))}
-                </nav>
-              </CardContent>
-            </Card>
+          {/* Settings Tabs */}
+          <div className="flex items-center gap-4 mb-6 border-b border-border">
+            {settingsCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  activeCategory === category.id
+                    ? "border-opz-yellow text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <category.icon className="h-4 w-4" />
+                {category.name}
+              </button>
+            ))}
+          </div>
 
-            {/* Right Column - Configuration Panel */}
+          {/* Agent Configuration Content */}
+          {activeCategory === "agent-config" && (
+            <div className="grid grid-cols-[280px,1fr] gap-6">
+              {/* Left Column - Categories */}
+              <Card className="border-border h-fit">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Configuration Categories</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <nav className="space-y-1 p-2">
+                    {agentConfigSections.map((section) => (
+                      <button
+                        key={section.id}
+                        onClick={() => setActiveSection(section.id)}
+                        className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                          activeSection === section.id
+                            ? "bg-opz-yellow/20 text-foreground font-medium"
+                            : "text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <section.icon className={`h-4 w-4 ${activeSection === section.id ? "text-opz-yellow" : ""}`} />
+                        <div>
+                          <p className="font-medium">{section.name}</p>
+                          <p className="text-xs text-muted-foreground">{section.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </nav>
+                </CardContent>
+              </Card>
+
+              {/* Right Column - Configuration Panel */}
+              <Card className="border-border">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <div>
+                    <CardTitle className="text-base">
+                      {agentConfigSections.find(s => s.id === activeSection)?.name}
+                    </CardTitle>
+                    <CardDescription>
+                      {agentConfigSections.find(s => s.id === activeSection)?.description}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handleReset} className="gap-1">
+                      <RotateCcw className="h-3 w-3" />
+                      Reset
+                    </Button>
+                    <Button size="sm" onClick={handleSave} className="gap-1 bg-opz-yellow text-foreground hover:bg-opz-yellow/90">
+                      <Save className="h-3 w-3" />
+                      Save
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {renderConfigPanel()}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Placeholder for other categories */}
+          {activeCategory === "task" && (
             <Card className="border-border">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <div>
-                  <CardTitle className="text-base">
-                    {configSections.find(s => s.id === activeSection)?.name}
-                  </CardTitle>
-                  <CardDescription>
-                    {configSections.find(s => s.id === activeSection)?.description}
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={handleReset} className="gap-1">
-                    <RotateCcw className="h-3 w-3" />
-                    Reset
-                  </Button>
-                  <Button size="sm" onClick={handleSave} className="gap-1 bg-opz-yellow text-foreground hover:bg-opz-yellow/90">
-                    <Save className="h-3 w-3" />
-                    Save
-                  </Button>
-                </div>
+              <CardHeader>
+                <CardTitle>Task Settings</CardTitle>
+                <CardDescription>Configure task-related preferences</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderConfigPanel()}
+                <p className="text-muted-foreground">Task settings configuration will be available here.</p>
               </CardContent>
             </Card>
-          </div>
+          )}
+
+          {activeCategory === "notification" && (
+            <Card className="border-border">
+              <CardHeader>
+                <CardTitle>Notification Settings</CardTitle>
+                <CardDescription>Manage your notification preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Notification settings configuration will be available here.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeCategory === "security" && (
+            <Card className="border-border">
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>Configure security and access controls</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Security settings configuration will be available here.</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
