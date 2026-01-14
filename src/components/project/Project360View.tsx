@@ -40,6 +40,7 @@ interface Project360Props {
     ai_agent_enabled: boolean;
   };
   onEnableAI: () => void;
+  onDisableAI: () => void;
 }
 
 interface Task {
@@ -74,7 +75,7 @@ const teamMembers = [
   { id: "4", name: "Sarah Williams" },
 ];
 
-export function Project360View({ project, onEnableAI }: Project360Props) {
+export function Project360View({ project, onEnableAI, onDisableAI }: Project360Props) {
   const [activeTab, setActiveTab] = useState("tasks");
   const [filter, setFilter] = useState<"not-closed" | "closed">("not-closed");
   const [search, setSearch] = useState("");
@@ -452,6 +453,8 @@ export function Project360View({ project, onEnableAI }: Project360Props) {
             onToggleAgent={(enabled) => {
               if (enabled) {
                 handleEnableAIConfirm();
+              } else {
+                onDisableAI();
               }
             }}
           />
