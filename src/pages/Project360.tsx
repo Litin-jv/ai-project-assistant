@@ -58,6 +58,14 @@ const Project360 = () => {
     }
   };
 
+  const handleDisableAI = () => {
+    if (projectId) {
+      setProjects(prev => prev.map(p => 
+        p.id === projectId ? { ...p, ai_agent_enabled: false } : p
+      ));
+    }
+  };
+
   if (!project) {
     return (
       <div className="flex h-screen flex-col bg-background">
@@ -85,6 +93,7 @@ const Project360 = () => {
         <Project360View 
           project={project}
           onEnableAI={handleEnableAI}
+          onDisableAI={handleDisableAI}
         />
       </div>
     </div>
